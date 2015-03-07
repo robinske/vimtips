@@ -1,1 +1,1 @@
-Read me here.
+Simple app to send daily, random vim tips using http://vim.wikia.com/wiki/

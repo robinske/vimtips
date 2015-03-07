@@ -1,23 +1,47 @@
 package robinske.vimtips
 
 import scalaj.http._
+import java.net.URL
 
 object VimTips extends App {
 
+  val RANDOM = "http://vim.wikia.com/wiki/Special:Random"
+  lazy val randomResponse = get(RANDOM)
 
   def get(url: String): HttpResponse[String] = Http(url).asString
 
-  val random = "http://vim.wikia.com/wiki/Special:Random"
-  val randomResponse = get(random)
+  def pathSlug(url: String): String = {
+    val parsedUrl = new URL(url)
+    parsedUrl.getPath.stripPrefix("/wiki/")
+  }
+
+  def isValidTip(pathSlug: String): Boolean = {
+    val err = """VimTip(\d)+""".r
+    err.findFirstIn(pathSlug).isEmpty
+  }
+
+  def slugToTitle(pathSlug: String): String =
+    pathSlug.split("_").map(_.capitalize).mkString(" ")
+
 
   for {
-    url <- randomResponse.headers.get("Location")
+    url <- randomResponse.location
   } yield {
-    val response = get(url)
+    val path = pathSlug(url)
+    if (isValidTip(path)) {
+      println(slugToTitle(path))
+      // send email
+    } else {
+      println("Invalid!!!")
+      println(path)
+      // try again w/o timeout
+    }
+
+
 
     // TODO:
-    // Filter out: "xxx does not exist"
-    // parse response body
+    // include link in email
+    // div id=WikiaArticle
     // send email daily
   }
 }
